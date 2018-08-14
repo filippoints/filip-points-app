@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FilipPoints</string>
+    <string name="submit_points">Submit points!</string>
+    <string name="points_submitted">Points assigned!</string>
+    <string name="choose_points">Choose the number of points</string>
+    <string name="select_points">Assign another number</string>
+    <string name="select_person">Assign points to</string>
+    <string name="go_to_web_app">Go to web app to add or edit a person</string>
+    <string name="check_connection">Check your internet connection</string>
+</resources>
