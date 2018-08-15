@@ -1,6 +1,7 @@
 package com.filippoints.util;
 
-import android.content.Context;
+import android.support.design.widget.Snackbar;
+import android.view.View;
 import android.widget.Toast;
 
 import com.filippoints.R;
@@ -15,8 +16,8 @@ import java.util.Set;
  */
 
 public class Util {
-    public static void displayCheckConnectionToast(Context context) {
-        Toast.makeText(context, R.string.check_connection, Toast.LENGTH_LONG).show();
+    public static void displayCheckConnectionSnackbar(View view) {
+        Snackbar.make(view, R.string.check_connection, Toast.LENGTH_SHORT).show();
     }
 
     public static Set<String> intListToStrSet(List<Integer> ints) {

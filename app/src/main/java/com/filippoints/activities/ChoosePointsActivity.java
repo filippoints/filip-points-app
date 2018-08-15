@@ -146,8 +146,7 @@ public class ChoosePointsActivity extends AppCompatActivity {
             }
 
             private void onNoConnection() {
-                setValuesToButtons(popularButtonsIds, fixedPoints);
-                Util.displayCheckConnectionToast(ChoosePointsActivity.this);
+                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
             }
         });
     }
