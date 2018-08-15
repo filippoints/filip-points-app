@@ -2,8 +2,10 @@ package com.filippoints.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.NumberPicker;
@@ -13,8 +15,10 @@ import com.filippoints.controller.Controller;
 import com.filippoints.model.AwardedPoints;
 import com.filippoints.util.Util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,7 +28,11 @@ public class ChoosePointsActivity extends AppCompatActivity {
 
     private static final int MAX_VALUE = 3500;
     private static final int INIT_NUMBER_PICKER_VALUE = 50;
+    private static final String POINTS_PREF_NAME = "points_prefs";
+    private static final String POINTS_KEY = "points";
+    private static final String LOG_TAG = "ChoosePointsActivity";
     private List<Integer> fixedPoints = Arrays.asList(10, 20, 50);
+    private List<Integer> DEFAULT_MOST_OFTEN_POINTS = Arrays.asList(1, 5, 10, 20, 25, 50);
 
     private List<Integer> fixedButtonsIds = Arrays.asList(
             R.id.button1
@@ -88,6 +96,27 @@ public class ChoosePointsActivity extends AppCompatActivity {
 
     private void setTextToButtons() {
         setValuesToButtons(fixedButtonsIds, fixedPoints);
+        updatePointsInSharedPreferences();
+
+        SharedPreferences prefs = getSharedPreferences(POINTS_PREF_NAME, MODE_PRIVATE);
+        Set<String> pointsStrSet = prefs.getStringSet(POINTS_KEY, Util.intListToStrSet(
+                DEFAULT_MOST_OFTEN_POINTS
+        ));
+        List<Integer> points = Util.stringSetToIntList(pointsStrSet);
+
+        int c=0;
+        for (int buttonId : popularButtonsIds) {
+            Button button = findViewById(buttonId);
+            int awardedPoints = points.get(c++);
+            while (fixedPoints.contains(awardedPoints)) {
+                awardedPoints = points.get(c++);
+            }
+            button.setText(Long.toString(awardedPoints));
+            button.setOnClickListener(listener);
+        }
+    }
+
+    private void updatePointsInSharedPreferences() {
         Call<List<AwardedPoints>> pointsCall = Controller.getWebAPI(this)
                 .getPoints(fixedButtonsIds.size() + popularButtonsIds.size());
         pointsCall.enqueue(new Callback<List<AwardedPoints>>() {
@@ -96,17 +125,16 @@ public class ChoosePointsActivity extends AppCompatActivity {
                                    Response<List<AwardedPoints>> response) {
                 if (response.isSuccessful()) {
                     List<AwardedPoints> awardedPointsList = response.body();
-                    int c=0;
-                    for (int buttonId : popularButtonsIds) {
-                        Button button = findViewById(buttonId);
-                        int awardedPoints = awardedPointsList.get(c++).getAwarded_points();
-                        while (fixedPoints.contains(awardedPoints)) {
-                            awardedPoints = awardedPointsList.get(c++
-                            ).getAwarded_points();
-                        }
-                        button.setText(Long.toString(awardedPoints));
-                        button.setOnClickListener(listener);
+                    //TODO clean this up
+                    List<Integer> pointsList = new ArrayList<>();
+                    for (AwardedPoints ap: awardedPointsList) {
+                        pointsList.add(ap.getAwarded_points());
                     }
+                    SharedPreferences.Editor prefsEditor = getSharedPreferences(POINTS_PREF_NAME, MODE_PRIVATE).edit();
+                    prefsEditor.putStringSet(POINTS_KEY, Util.intListToStrSet(pointsList));
+                    Log.d(LOG_TAG, String.format("Saving the following points into shared preferences: %s",
+                                    pointsList));
+                    prefsEditor.apply();
                 } else {
                     onNoConnection();
                 }
