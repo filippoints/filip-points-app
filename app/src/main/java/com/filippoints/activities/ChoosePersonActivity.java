@@ -2,6 +2,7 @@ package com.filippoints.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,10 +20,10 @@ import com.filippoints.R;
 import com.filippoints.controller.Controller;
 import com.filippoints.model.Person;
 import com.filippoints.util.Util;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -37,6 +38,9 @@ public class ChoosePersonActivity extends AppCompatActivity {
     private static final String POINTS_STRING = "POINTS";
     private static final String WEB_APP_URL = "http://www.filippoints.com/all/";
 
+    private static final String PERSONS_PREFS_NAME = "persons_pref";
+    private static final String PERSONS_KEY = "persons_key";
+
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private int points;
@@ -45,7 +49,7 @@ public class ChoosePersonActivity extends AppCompatActivity {
         Intent intent = new Intent(context, ChoosePersonActivity.class);
         intent.putExtra(POINTS_STRING, points);
         return intent;
-    }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,21 +72,33 @@ public class ChoosePersonActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         swipeRefreshLayout = findViewById(R.id.swiperefresh);
-        swipeRefreshLayout.setOnRefreshListener(this::updatePeople);
+        swipeRefreshLayout.setOnRefreshListener(this::updatePeopleFromPreferences);
 
-        updatePeople();
-
+        updatePeopleFromPreferences();
+        updatePeopleFromBackend();
     }
 
-    private void updatePeople() {
+    private void updatePeopleFromPreferences() {
+        SharedPreferences prefs = getSharedPreferences(PERSONS_PREFS_NAME, MODE_PRIVATE);
+        String personsJson = prefs.getString(PERSONS_KEY, "");
+        List<Person> personList = new Gson().fromJson(personsJson, new TypeToken<List<Person>>(){}.getType());
+        personList = personList != null ? personList: new ArrayList<>();
+        recyclerView.setAdapter(new Adapter(personList));
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void updatePeopleFromBackend() {
         Call<List<Person>> call = Controller.getWebAPI(this).getPeople(5);
         call.enqueue(new Callback<List<Person>>() {
             @Override
             public void onResponse(Call<List<Person>> call, Response<List<Person>> response) {
                 if (response.isSuccessful()) {
                     List<Person> persons = response.body();
-                    recyclerView.setAdapter(new Adapter(persons));
-                    swipeRefreshLayout.setRefreshing(false);
+                    SharedPreferences.Editor prefsEditor
+                            = getSharedPreferences(PERSONS_PREFS_NAME, MODE_PRIVATE).edit();
+                    String personJson = new Gson().toJson(persons);
+                    prefsEditor.putString(PERSONS_KEY, personJson);
+                    prefsEditor.apply();
                 } else {
                     onNoConnection();
                 }
