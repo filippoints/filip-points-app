@@ -29,7 +29,6 @@ public class PointsReasonActivity extends AppCompatActivity {
 
     private int person_id;
     private int points;
-    private View snackbarView = findViewById(android.R.id.content);
 
     public static Intent buildIntent(Context context, int personId, int points) {
         Intent intent = new Intent(context, PointsReasonActivity.class);
@@ -75,13 +74,13 @@ public class PointsReasonActivity extends AppCompatActivity {
                     Toast.makeText(PointsReasonActivity.this,
                             R.string.points_submitted, Toast.LENGTH_SHORT).show();
                 } else {
-                    Util.displayCheckConnectionSnackbar(snackbarView);
+                    Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Util.displayCheckConnectionSnackbar(snackbarView);
+                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
             }
         });
     }
