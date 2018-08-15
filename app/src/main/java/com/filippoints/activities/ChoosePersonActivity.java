@@ -14,11 +14,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.filippoints.R;
 import com.filippoints.controller.Controller;
 import com.filippoints.model.Person;
+import com.filippoints.util.Util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public class ChoosePersonActivity extends AppCompatActivity {
             }
 
             private void onNoConnection() {
-                Toast.makeText(ChoosePersonActivity.this, R.string.check_connection, Toast.LENGTH_SHORT).show();
+                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
