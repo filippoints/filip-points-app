@@ -1,11 +1,13 @@
 package com.filippoints.activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -29,6 +31,7 @@ public class PointsReasonActivity extends AppCompatActivity {
 
     private int person_id;
     private int points;
+    private EditText reasonEditText;
 
     public static Intent buildIntent(Context context, int personId, int points) {
         Intent intent = new Intent(context, PointsReasonActivity.class);
@@ -53,34 +56,77 @@ public class PointsReasonActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EditText viewById = PointsReasonActivity.this.findViewById(R.id.points_reason_edit_text);
-                String points_reason = viewById.getText().toString();
-                submit_points_to_backend(PointsReasonActivity.this.person_id, PointsReasonActivity.this.points, points_reason);
+                reasonEditText = PointsReasonActivity.this.findViewById(R.id.points_reason_edit_text);
+                String points_reason = reasonEditText.getText().toString();
+                if ("".equals(points_reason.trim())) {
+                    showNoReasonError();
+                } else {
+                    submit_points_to_backend(PointsReasonActivity.this.person_id, PointsReasonActivity.this.points, points_reason, new PointsAssignmentCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(PointsReasonActivity.this,
+                                    R.string.points_submitted_success, Toast.LENGTH_SHORT).show();
+                        }
 
-                Intent intent = ChoosePointsActivity.buildIntent(PointsReasonActivity.this);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
+                        @Override
+                        public void onFail() {
+                            Toast.makeText(PointsReasonActivity.this,
+                                    R.string.points_submitted_fail, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void always() {
+                            Intent intent = ChoosePointsActivity.buildIntent(PointsReasonActivity.this);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        }
+                    });
+                }
             }
         });
     }
 
-    private void submit_points_to_backend(int person_id, int points, String points_reason) {
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    private void showNoReasonError() {
+        hideKeyboard(this);
+        Toast.makeText(PointsReasonActivity.this, R.string.reason_is_empty, Toast.LENGTH_LONG)
+                .show();
+    }
+
+    private interface PointsAssignmentCallback {
+        void onSuccess();
+        void onFail();
+        void always();
+    }
+
+    private void submit_points_to_backend(int person_id, int points, String points_reason, PointsAssignmentCallback callback) {
         AssignedPoints assignedPoints = new AssignedPoints(points, points_reason, person_id, System.currentTimeMillis());
         Call<Void> call = Controller.getWebAPI(this).submitPoints(assignedPoints);
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(PointsReasonActivity.this,
-                            R.string.points_submitted, Toast.LENGTH_SHORT).show();
+                    callback.onSuccess();
                 } else {
-                    Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
+                    callback.onFail();
                 }
+                callback.always();
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
+                hideKeyboard(PointsReasonActivity.this);
+                Util.offlinePointsWillBeAssignedLaterSnackbar(findViewById(android.R.id.content));
             }
         });
     }

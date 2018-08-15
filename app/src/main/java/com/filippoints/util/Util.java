@@ -16,7 +16,12 @@ import java.util.Set;
  */
 
 public class Util {
-    public static void displayCheckConnectionSnackbar(View view) {
+    public static void offlinePointsWillBeAssignedLaterSnackbar(View view) {
+        Snackbar.make(view, R.string.offline_points_assigned_later, Toast.LENGTH_SHORT).show();
+    }
+
+
+    public static void noConnectionSnackbar(View view) {
         Snackbar.make(view, R.string.check_connection, Toast.LENGTH_SHORT).show();
     }
 

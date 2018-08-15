@@ -135,18 +135,12 @@ public class ChoosePointsActivity extends AppCompatActivity {
                     Log.d(LOG_TAG, String.format("Saving the following points into shared preferences: %s",
                                     pointsList));
                     prefsEditor.apply();
-                } else {
-                    onNoConnection();
                 }
             }
 
             @Override
             public void onFailure(Call<List<AwardedPoints>> call, Throwable t) {
-                onNoConnection();
-            }
-
-            private void onNoConnection() {
-                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
+                /* Do nothing */
             }
         });
     }

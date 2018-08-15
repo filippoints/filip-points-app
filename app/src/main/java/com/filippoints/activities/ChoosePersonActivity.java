@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.filippoints.R;
 import com.filippoints.controller.Controller;
 import com.filippoints.model.Person;
+import com.filippoints.util.InternetCheck;
 import com.filippoints.util.Util;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -72,10 +73,20 @@ public class ChoosePersonActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         swipeRefreshLayout = findViewById(R.id.swiperefresh);
-        swipeRefreshLayout.setOnRefreshListener(this::updatePeopleFromPreferences);
+        swipeRefreshLayout.setOnRefreshListener(this::updatePeopleFromPreferencesIfOnline);
 
         updatePeopleFromPreferences();
         updatePeopleFromBackend();
+    }
+
+    private void updatePeopleFromPreferencesIfOnline() {
+        new InternetCheck(online -> {
+            if (!online) {
+                noConnection();
+            } else {
+                updatePeopleFromPreferences();
+            }
+        });
     }
 
     private void updatePeopleFromPreferences() {
@@ -99,21 +110,19 @@ public class ChoosePersonActivity extends AppCompatActivity {
                     String personJson = new Gson().toJson(persons);
                     prefsEditor.putString(PERSONS_KEY, personJson);
                     prefsEditor.apply();
-                } else {
-                    onNoConnection();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Person>> call, Throwable t) {
-                onNoConnection();
-            }
-
-            private void onNoConnection() {
-                Util.displayCheckConnectionSnackbar(findViewById(android.R.id.content));
-                swipeRefreshLayout.setRefreshing(false);
+                /* Do nothing! */
             }
         });
+    }
+
+    private void noConnection() {
+        Util.noConnectionSnackbar(findViewById(android.R.id.content));
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private class PersonViewHolder extends RecyclerView.ViewHolder {
