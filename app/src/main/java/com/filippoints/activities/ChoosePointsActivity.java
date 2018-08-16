@@ -24,6 +24,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+
 public class ChoosePointsActivity extends AppCompatActivity {
 
     private static final int MAX_VALUE = 3500;
