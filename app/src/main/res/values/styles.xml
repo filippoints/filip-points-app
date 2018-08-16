@@ -14,4 +14,8 @@
 
     </style>
 
+    <style name="non_desirable_action" parent="TextAppearance.AppCompat.Title">
+        <item name="android:textSize">@dimen/abc_text_size_small_material</item>
+    </style>
+
 </resources>

@@ -10,8 +10,9 @@
     <string name="check_connection">Check your internet connection</string>
     <string name="offline_points_assigned_later">Offline. Points will be assigned later</string>
     <string name="reason_is_empty">Provide reason for giving filippoints</string>
+    <string name="welcome_text">Welcome to <i>FilipPoints</i>!</string>
+    <string name="skip_auth"><u>Skip authorization</u></string>
 
     <string name="facebook_app_id">1884176651643380</string>
     <string name="fb_login_protocol_scheme">fb1884176651643380</string>
-    <string name="welcome_text">Welcome to <i>FilipPoints</i>!</string>
 </resources>

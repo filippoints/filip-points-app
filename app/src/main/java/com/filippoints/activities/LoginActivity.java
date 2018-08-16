@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -62,5 +63,10 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void goToPeopleList(View view) {
+        Intent intent = ChoosePersonActivity.buildIntent(LoginActivity.this);
+        startActivity(intent);
     }
 }

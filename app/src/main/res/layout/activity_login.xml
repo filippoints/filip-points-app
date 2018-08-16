@@ -21,11 +21,23 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/skip_auth"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="goToPeopleList"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="30dp"
+        android:textAppearance="@style/non_desirable_action"
         />
 
     <ImageView

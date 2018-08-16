@@ -41,14 +41,23 @@ public class ChoosePersonActivity extends AppCompatActivity {
 
     private static final String PERSONS_PREFS_NAME = "persons_pref";
     private static final String PERSONS_KEY = "persons_key";
+    private static final String IS_ADMIN_STRING = "IS_ADMIN";
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private int points;
+    private boolean isAdmin;
 
     public static Intent buildIntent(Context context, int points) {
         Intent intent = new Intent(context, ChoosePersonActivity.class);
+        intent.putExtra(IS_ADMIN_STRING, true);
         intent.putExtra(POINTS_STRING, points);
+        return intent;
+    };
+
+    public static Intent buildIntent(Context context) {
+        Intent intent = new Intent(context, ChoosePersonActivity.class);
+        intent.putExtra(IS_ADMIN_STRING, false);
         return intent;
     };
 
@@ -56,8 +65,9 @@ public class ChoosePersonActivity extends AppCompatActivity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         points = getIntent().getIntExtra(POINTS_STRING, -1);
-        if (points == -1){
-            throw new RuntimeException();
+        isAdmin = getIntent().getBooleanExtra(IS_ADMIN_STRING, false);
+        if (isAdmin && points == -1){
+            throw new RuntimeException("Points not specified!");
         }
         setContentView(R.layout.activity_choose_person);
 
@@ -71,6 +81,7 @@ public class ChoosePersonActivity extends AppCompatActivity {
         });
         recyclerView = findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(isAdmin ? new AdminAdapter() : new Adapter());
 
         swipeRefreshLayout = findViewById(R.id.swiperefresh);
         swipeRefreshLayout.setOnRefreshListener(this::updatePeopleFromPreferencesIfOnline);
@@ -94,7 +105,7 @@ public class ChoosePersonActivity extends AppCompatActivity {
         String personsJson = prefs.getString(PERSONS_KEY, "");
         List<Person> personList = new Gson().fromJson(personsJson, new TypeToken<List<Person>>(){}.getType());
         personList = personList != null ? personList: new ArrayList<>();
-        recyclerView.setAdapter(new Adapter(personList));
+        ((Adapter)recyclerView.getAdapter()).setValues(personList);
         swipeRefreshLayout.setRefreshing(false);
     }
 
@@ -142,15 +153,27 @@ public class ChoosePersonActivity extends AppCompatActivity {
         }
     }
 
+    private class AdminAdapter extends Adapter {
+        protected void onClick(int position) {
+            int personId = values.get(position).getPk();
+            Intent intent = PointsReasonActivity.buildIntent(ChoosePersonActivity.this, personId, ChoosePersonActivity.this.points);
+            startActivity(intent);
+        }
+    }
+
     private class Adapter extends RecyclerView.Adapter<PersonViewHolder> {
 
-        private List<Person> values = new ArrayList<>();
+        protected List<Person> values = new ArrayList<>();
 
         Adapter(List<Person> values) {
             this.values = values;
         }
 
         public Adapter() {
+        }
+
+        protected void onClick(int position) {
+            /* Do nothing */
         }
 
         public void setValues(List<Person> values) {
@@ -170,11 +193,7 @@ public class ChoosePersonActivity extends AppCompatActivity {
                     .setText(String.format("%s %s", person.getFirst_name(), person.getLast_name()));
             ((TextView)holder.itemView.findViewById(R.id.person_points))
                     .setText(String.format("%d", person.getPoints()));
-            holder.itemView.setOnClickListener(view -> {
-                int personId = values.get(position).getPk();
-                Intent intent = PointsReasonActivity.buildIntent(ChoosePersonActivity.this, personId, ChoosePersonActivity.this.points);
-                startActivity(intent);
-            });
+            holder.itemView.setOnClickListener(view -> {onClick(position);});
         }
 
         @Override
